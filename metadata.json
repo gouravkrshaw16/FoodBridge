@@ -1,0 +1,6 @@
+{
+  "name": "FoodBridge AI",
+  "description": "Zero Food Waste platform connecting surplus food donors with NGOs and delivery volunteers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

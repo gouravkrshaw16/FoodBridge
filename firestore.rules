@@ -1,0 +1,135 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (request.auth.token.email == 'buildingthefuture0007@gmail.com')
+      );
+    }
+
+    function isValidUserProfile(data) {
+      return data.uid is string && data.uid.size() <= 128 &&
+             data.email is string && data.email.size() <= 256 &&
+             data.role in ['donor', 'ngo', 'volunteer', 'admin'];
+    }
+
+    function isValidFoodDonation(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.foodName is string && data.foodName.size() <= 128 &&
+             data.category is string && data.category.size() <= 64 &&
+             data.isVegetarian is bool &&
+             data.quantityMeals is number && data.quantityMeals > 0 &&
+             data.donorName is string && data.donorName.size() <= 128 &&
+             data.pickupLocation is string && data.pickupLocation.size() <= 256 &&
+             data.status in ['Available', 'Claimed', 'Picked Up', 'Completed', 'Cancelled', 'Expired'];
+    }
+
+    function isValidNGO(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.name is string && data.name.size() <= 128 &&
+             data.location is string && data.location.size() <= 256 &&
+             data.contactPerson is string && data.contactPerson.size() <= 128 &&
+             data.mealsRequired is number && data.mealsRequired > 0 &&
+             data.maxReceivingCapacity is number && data.maxReceivingCapacity > 0 &&
+             data.isAvailable is bool;
+    }
+
+    function isValidVolunteer(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.name is string && data.name.size() <= 128 &&
+             data.contactPhone is string && data.contactPhone.size() <= 64 &&
+             data.serviceArea is string && data.serviceArea.size() <= 128 &&
+             data.vehicleType in ['Two-Wheeler', 'Car / Van', 'Bicycle', 'Electric Cargo'] &&
+             data.status in ['Available', 'On Delivery', 'Off Duty'];
+    }
+
+    // Admins Collection
+    match /admins/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // User Profiles
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if isValidId(userId) &&
+        isValidUserProfile(incoming()) &&
+        (incoming().role in ['donor', 'ngo', 'volunteer'] || isAdmin());
+      allow update: if isValidUserProfile(incoming()) &&
+        (isAdmin() || (isSignedIn() && request.auth.uid == userId));
+      allow delete: if isAdmin();
+    }
+
+    // Food Donations (Public read for community matching, valid lifecycle updates)
+    match /donations/{donationId} {
+      allow read: if true;
+      allow create: if isValidId(donationId) && isValidFoodDonation(incoming());
+      
+      // Action-based updates across status lifecycle
+      allow update: if isValidFoodDonation(incoming()) && (
+        isAdmin() ||
+        // Available -> Available (editing details)
+        (existing().status == 'Available' && incoming().status == 'Available') ||
+        // Claim action: Available -> Claimed
+        (existing().status == 'Available' && incoming().status == 'Claimed') ||
+        // Dispatch action: assign courier on Claimed batch
+        (existing().status == 'Claimed' && incoming().status == 'Claimed') ||
+        // Pickup action: Claimed -> Picked Up
+        (existing().status == 'Claimed' && incoming().status == 'Picked Up') ||
+        // Complete action: Picked Up -> Completed
+        (existing().status == 'Picked Up' && incoming().status == 'Completed') ||
+        // Cancel action
+        (existing().status != 'Completed' && incoming().status == 'Cancelled') ||
+        // Expiration action
+        (existing().status == 'Available' && incoming().status == 'Expired')
+      );
+      allow delete: if isAdmin() || (existing().status == 'Available');
+
+      match /history/{historyId} {
+        allow read: if true;
+        allow write: if true;
+      }
+    }
+
+    // NGO Partner Profiles (Public read for discovery)
+    match /ngos/{ngoId} {
+      allow read: if true;
+      allow create: if isValidId(ngoId) && isValidNGO(incoming());
+      allow update: if isValidNGO(incoming()) && (
+        isAdmin() ||
+        incoming().diff(existing()).affectedKeys().hasOnly(['isAvailable', 'maxReceivingCapacity', 'urgency', 'mealsRequired'])
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Volunteer Profiles (Public read for community coverage)
+    match /volunteers/{volunteerId} {
+      allow read: if true;
+      allow create: if isValidId(volunteerId) && isValidVolunteer(incoming());
+      allow update: if isValidVolunteer(incoming()) && (
+        isAdmin() ||
+        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'currentDonationId', 'completedDeliveriesCount'])
+      );
+      allow delete: if isAdmin();
+    }
+  }
+}

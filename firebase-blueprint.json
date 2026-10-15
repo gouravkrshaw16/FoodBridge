@@ -1,0 +1,143 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account profile and role in the platform",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 128 },
+        "role": { "type": "string", "enum": ["donor", "ngo", "volunteer", "admin"] },
+        "organizationName": { "type": "string", "maxLength": 128 },
+        "phone": { "type": "string", "maxLength": 32 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "FoodDonation": {
+      "title": "FoodDonation",
+      "description": "Surplus food donation batch",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "foodName": { "type": "string", "maxLength": 128 },
+        "category": { "type": "string", "maxLength": 64 },
+        "isVegetarian": { "type": "boolean" },
+        "quantity": { "type": "number" },
+        "quantityUnit": { "type": "string", "maxLength": 64 },
+        "quantityMeals": { "type": "number" },
+        "donorId": { "type": "string", "maxLength": 128 },
+        "donorName": { "type": "string", "maxLength": 128 },
+        "donorType": { "type": "string", "maxLength": 64 },
+        "pickupLocation": { "type": "string", "maxLength": 256 },
+        "donorContact": { "type": "string", "maxLength": 64 },
+        "preparationTime": { "type": "string" },
+        "collectionDeadline": { "type": "string" },
+        "storageRequirement": { "type": "string", "maxLength": 64 },
+        "temperatureRequirement": { "type": "string", "maxLength": 128 },
+        "allergens": { "type": "string", "maxLength": 256 },
+        "dietaryRestrictions": { "type": "array" },
+        "additionalNotes": { "type": "string", "maxLength": 512 },
+        "specialHandlingInstructions": { "type": "string", "maxLength": 256 },
+        "safetyConfirmedByDonor": { "type": "boolean" },
+        "status": {
+          "type": "string",
+          "enum": ["Available", "Claimed", "Picked Up", "Completed", "Cancelled", "Expired"]
+        },
+        "claimedByNgoId": { "type": "string", "maxLength": 128 },
+        "claimedByNgoName": { "type": "string", "maxLength": 128 },
+        "assignedVolunteerId": { "type": "string", "maxLength": 128 },
+        "assignedVolunteerName": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string" },
+        "claimedAt": { "type": "string" },
+        "pickedUpAt": { "type": "string" },
+        "completedAt": { "type": "string" },
+        "cancelledAt": { "type": "string" },
+        "cancellationReason": { "type": "string", "maxLength": 256 }
+      },
+      "required": ["id", "foodName", "category", "quantityMeals", "donorName", "pickupLocation", "collectionDeadline", "status"]
+    },
+    "NGO": {
+      "title": "NGO",
+      "description": "Recipient community kitchen or shelter",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "location": { "type": "string", "maxLength": 256 },
+        "serviceArea": { "type": "string", "maxLength": 128 },
+        "simulatedDistanceKm": { "type": "number" },
+        "contactPerson": { "type": "string", "maxLength": 128 },
+        "contactPhone": { "type": "string", "maxLength": 64 },
+        "contactEmail": { "type": "string", "maxLength": 128 },
+        "mealsRequired": { "type": "number" },
+        "maxReceivingCapacity": { "type": "number" },
+        "acceptedCategories": { "type": "array" },
+        "acceptsNonVeg": { "type": "boolean" },
+        "urgency": { "type": "string", "enum": ["Low", "Medium", "High", "Critical"] },
+        "isAvailable": { "type": "boolean" },
+        "isVerified": { "type": "boolean" },
+        "operatingHours": { "type": "string", "maxLength": 64 },
+        "beneficiaryDescription": { "type": "string", "maxLength": 512 },
+        "ownerUid": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "location", "contactPerson", "contactPhone", "mealsRequired", "maxReceivingCapacity", "isAvailable"]
+    },
+    "Volunteer": {
+      "title": "Volunteer",
+      "description": "Courier delivery volunteer profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "contactPhone": { "type": "string", "maxLength": 64 },
+        "contactEmail": { "type": "string", "maxLength": 128 },
+        "serviceArea": { "type": "string", "maxLength": 128 },
+        "vehicleType": { "type": "string", "enum": ["Two-Wheeler", "Car / Van", "Bicycle", "Electric Cargo"] },
+        "status": { "type": "string", "enum": ["Available", "On Delivery", "Off Duty"] },
+        "currentDonationId": { "type": "string", "maxLength": 128 },
+        "completedDeliveriesCount": { "type": "number" },
+        "isVerified": { "type": "boolean" },
+        "ownerUid": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "contactPhone", "serviceArea", "vehicleType", "status"]
+    },
+    "AdminDoc": {
+      "title": "AdminDoc",
+      "description": "Administrator authorization anchor",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "UserProfile" },
+      "description": "User profiles with role assignment"
+    },
+    "/donations/{donationId}": {
+      "schema": { "$ref": "FoodDonation" },
+      "description": "Food surplus batches across status lifecycle"
+    },
+    "/ngos/{ngoId}": {
+      "schema": { "$ref": "NGO" },
+      "description": "Registered partner shelters and community kitchens"
+    },
+    "/volunteers/{volunteerId}": {
+      "schema": { "$ref": "Volunteer" },
+      "description": "Volunteer courier fleet profiles"
+    },
+    "/admins/{userId}": {
+      "schema": { "$ref": "AdminDoc" },
+      "description": "Platform administrator role authorizations"
+    }
+  }
+}

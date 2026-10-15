@@ -9,7 +9,7 @@ The platform aims to make food redistribution faster, smarter, and more efficien
 ---
 
 ## Pitch Deck:
-FoodBridge AI.pdf
+
 
 ## 🌍 Problem Statement
 

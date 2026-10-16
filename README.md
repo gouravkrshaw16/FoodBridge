@@ -7,6 +7,8 @@ FoodBridge AI is an AI-powered platform designed to reduce food waste by connect
 The platform aims to make food redistribution faster, smarter, and more efficient through intelligent food matching, donation management, and real-time coordination.
 
 ---
+## Live Website Link:
+https://foodbridge-ai2.ai.studio
 
 ## 📑 Pitch Deck
 
